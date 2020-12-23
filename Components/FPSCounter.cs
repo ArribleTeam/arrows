@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,9 +6,14 @@ public static class FPSCounter
 {
     public static int s_smoothingWindowSize = 100;
 
+    static FPSCounter()
+    {
+        CoroutineManager.Instance.DoRoutine(_TrackFPS());
+    }
+
     private static Queue<float> s_measures = new Queue<float>(s_smoothingWindowSize);
+    private static int s_lastAddedFrame = -1;
     private static int s_lastProcessedFrame = -1;
-    private static int s_lastCalculatedFrame = -1;
 
     private static float s_minFrameTime;
     private static float s_maxFrameTime;
@@ -41,14 +46,21 @@ public static class FPSCounter
         }
     }
 
+    public static float MinFPS => 1.0f / MaxFrameTime;
+    public static float MaxFPS => 1.0f / MinFrameTime;
+    public static float AverageFPS => 1.0f / AverageFrameTime;
+
+    #region Private
+
     private static void _Process()
     {
-        if (s_lastCalculatedFrame >= Time.frameCount)
+        if (s_lastProcessedFrame >= Time.frameCount)
         {
             return;
         }
+        _AddCurrentFrame();
 
-        s_lastCalculatedFrame = Time.frameCount;
+        s_lastProcessedFrame = Time.frameCount;
 
         s_minFrameTime = float.MaxValue;
         s_maxFrameTime = float.MinValue;
@@ -64,19 +76,30 @@ public static class FPSCounter
 
     }
 
-    public static void UpdateManually()
+    private static void _AddCurrentFrame()
     {
-        if (Time.frameCount <= s_lastProcessedFrame)
+        if (Time.frameCount <= s_lastAddedFrame)
         {
             return;
         }
 
-        s_measures.Enqueue(1.0f / Time.deltaTime);
-        s_lastProcessedFrame = Time.frameCount;
+        s_measures.Enqueue(Time.deltaTime);
+        s_lastAddedFrame = Time.frameCount;
 
         while (s_measures.Count > s_smoothingWindowSize)
         {
             s_measures.Dequeue();
         }
     }
+
+    private static IEnumerator _TrackFPS()
+    {
+        while (true)
+        {
+            _AddCurrentFrame();
+            yield return new WaitForEndOfFrame();
+        }
+    }
+
+    #endregion
 }
