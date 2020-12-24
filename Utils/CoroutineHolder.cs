@@ -5,4 +5,8 @@
 /// </summary>
 public class CoroutineHolder : MonoBehaviour
 {
+    private void Awake()
+    {
+        DontDestroyOnLoad(gameObject);
+    }
 }
