@@ -31,10 +31,10 @@ public static class Draw {
 		var binormal = Vector3.forward;
 		Vector3.OrthoNormalize( ref direction, ref tangent, ref binormal );
 		
-		var p1 = direction *size + tangent *size /3;
-		var p2 = direction *size - tangent *size /3;
-		var p3 = direction *size + binormal *size /3;
-		var p4 = direction *size - binormal *size /3;
+		var p1 = -direction *size + tangent *size /3;
+		var p2 = -direction *size - tangent *size /3;
+		var p3 = -direction *size + binormal *size /3;
+		var p4 = -direction *size - binormal *size /3;
 		
 		var drawColor = (color.HasValue) ? color.Value : s_color;
 		Debug.DrawRay( origin, p1, drawColor, duration );
